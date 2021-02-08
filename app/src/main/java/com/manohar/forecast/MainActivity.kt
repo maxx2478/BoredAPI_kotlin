@@ -1,17 +1,16 @@
 package com.manohar.forecast
 
 import android.os.AsyncTask
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.lang.Exception
+import java.lang.ref.WeakReference
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -37,13 +36,15 @@ class MainActivity : AppCompatActivity() {
 
     fun getdata(url:String)
     {
-       myTask().execute(url)
+       myTask(MainActivity()).execute(url)
     }
 
 
-    inner class myTask: AsyncTask<String, String, String>() {
+      private class myTask internal constructor(context: MainActivity) : AsyncTask<String, String, String>() {
 
-        override fun onPreExecute() {
+          private val activityReference: WeakReference<MainActivity> = WeakReference(context)
+
+          override fun onPreExecute() {
             super.onPreExecute()
         }
 
@@ -52,7 +53,8 @@ class MainActivity : AppCompatActivity() {
                 val url = URL(params[0])
                 val urlConnect = url.openConnection() as HttpURLConnection
                 urlConnect.connectTimeout = 7000
-                var inputstream = ConvertStreamintoString(urlConnect.inputStream)
+
+                var inputstream = activityReference.get()!!.ConvertStreamintoString(urlConnect.inputStream)
                 publishProgress(inputstream)
             }
             catch (e:Exception){}
@@ -63,13 +65,17 @@ class MainActivity : AppCompatActivity() {
         override fun onProgressUpdate(vararg values: String?) {
             super.onProgressUpdate(*values)
             var json= JSONObject(values[0])
+            //val query=json.getJSONObject("query") //node which divides into children
+            //val results=query.getJSONObject("results") //node which divides into children
+           // val channel=results.getJSONObject("channel") //node which divides into children
+           // val astronomy=channel.getJSONObject("astronomy") //node which divides into children
             var activity=json.getString("activity")
-            activitytext!!.setText("Why not try:\n"+ activity)
+            activityReference.get()!!.activitytext!!.setText("Why not try:\n"+ activity)
             var peoplenum=json.getString("participants")
             if (peoplenum.equals("1"))
-                peopletext!!.setText("Participants Needed:\n"+"Only You dude")
+                activityReference.get()!!.peopletext!!.setText("Participants Needed:\n"+"Only You dude")
             else
-                peopletext!!.setText("Participants Needed:\n"+peoplenum)
+                activityReference.get()!!.peopletext!!.setText("Participants Needed:\n"+peoplenum)
 
 
 
@@ -84,7 +90,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun ConvertStreamintoString(inputStream: InputStream?): String {
+     fun ConvertStreamintoString(inputStream: InputStream?): String {
         val bufferReader= BufferedReader(InputStreamReader(inputStream))
         var line:String
         var AllString:String=""
