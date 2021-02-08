@@ -1,5 +1,6 @@
 package com.manohar.forecast
 
+import android.content.Context
 import android.os.AsyncTask
 import android.os.Bundle
 import android.view.View
@@ -36,7 +37,7 @@ class MainActivity : AppCompatActivity() {
 
     fun getdata(url:String)
     {
-       myTask(MainActivity()).execute(url)
+       myTask(this).execute(url)
     }
 
 
@@ -73,7 +74,7 @@ class MainActivity : AppCompatActivity() {
             activityReference.get()!!.activitytext!!.setText("Why not try:\n"+ activity)
             var peoplenum=json.getString("participants")
             if (peoplenum.equals("1"))
-                activityReference.get()!!.peopletext!!.setText("Participants Needed:\n"+"Only You dude")
+                activityReference.get()!!.peopletext!!.setText("Participants Needed:\n"+"Just You")
             else
                 activityReference.get()!!.peopletext!!.setText("Participants Needed:\n"+peoplenum)
 
